@@ -25,10 +25,10 @@ export default function WaitlistSection() {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-6">Join the Fixo Waitlist</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-6">Join the Fixo Newsletter</h2>
             <p className="text-xl text-primary-foreground/90 max-w-2xl mx-auto mb-8">
               Be among the first to experience instant expert help for your home repairs. Join thousands of homeowners
-              already on our waitlist.
+              already on our Newsletter.
             </p>
           </div>
 
@@ -97,7 +97,7 @@ export default function WaitlistSection() {
                     size="lg"
                     className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold"
                   >
-                    Join Waitlist
+                    Join Newsletter
                   </Button>
                 </div>
                 <p className="text-xs text-primary-foreground/70">No spam, ever. Unsubscribe at any time.</p>

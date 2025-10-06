@@ -3,15 +3,31 @@
 import { Button } from "@/components/ui/button"
 import { Video, Clock, DollarSign, Users, CheckCircle, Home, Briefcase } from "lucide-react"
 import { useState } from "react"
+import { useAuth, SignInButton } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 import HowItWorksSection from "@/components/custom/how-it-works-section"
 
 export default function HeroSection() {
   const [activeTab, setActiveTab] = useState("client")
+  const { isSignedIn } = useAuth()
+  const router = useRouter()
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId)
     if (element) {
       element.scrollIntoView({ behavior: "smooth" })
+    }
+  }
+
+  const handleJoinWaitlist = () => {
+    if (isSignedIn) {
+      router.push("/dashboard")
+    }
+  }
+
+  const handleJoinAsProfessional = () => {
+    if (isSignedIn) {
+      router.push("/professional-dashboard")
     }
   }
 
@@ -57,7 +73,7 @@ export default function HeroSection() {
               {activeTab === "client" ? (
                 <div className="space-y-8">
                   <div className="space-y-6">
-                    <h2 className="text-primary/100 text-foreground">Instant Expert Help for Home Repairs.</h2>
+                  <h2 className="text-primary/100 text-foreground">Instant Expert Help for Home Repairs.</h2>
                     <p className="text-pretty text-muted-foreground max-w-2xl text-lg">
                       Connect with professional tradies for instant video guidance. No waiting, no expensive call-out
                       fees.
@@ -81,13 +97,24 @@ export default function HeroSection() {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <Button
-                      size="lg"
-                      className="text-base md:text-lg px-8 py-6 shadow-xl gradient-purple border-0 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-                      onClick={() => scrollToSection("waitlist")}
-                    >
-                      Join Waitlist
-                    </Button>
+                    {isSignedIn ? (
+                      <Button
+                        size="lg"
+                        className="text-base md:text-lg px-8 py-6 shadow-xl gradient-purple border-0 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                        onClick={handleJoinWaitlist}
+                      >
+                        Start Fixing
+                      </Button>
+                    ) : (
+                      <SignInButton mode="modal" forceRedirectUrl="/dashboard">
+                        <Button
+                          size="lg"
+                          className="text-base md:text-lg px-8 py-6 shadow-xl gradient-purple border-0 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                        >
+                          Join as Homeowner
+                        </Button>
+                      </SignInButton>
+                    )}
                     <Button
                       size="lg"
                       variant="outline"
@@ -101,7 +128,7 @@ export default function HeroSection() {
               ) : (
                 <div className="space-y-8">
                   <div className="space-y-6">
-                    <h2 className="text-primary/100 text-foreground">Earn Money Helping Homeowners</h2>
+                  <h2 className="text-primary/100 text-foreground">Earn Money Helping Homeowners</h2>
                     <p className="text-pretty text-muted-foreground max-w-2xl text-lg">
                       Share your expertise through video calls. Flexible schedule, instant payments, growing client
                       base.
@@ -126,13 +153,24 @@ export default function HeroSection() {
 
                   {/* CTA Buttons for Professionals */}
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <Button
-                      size="lg"
-                      className="text-base md:text-lg px-8 py-6 shadow-xl gradient-purple border-0 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-                      onClick={() => scrollToSection("waitlist")}
-                    >
-                      Join as Expert
-                    </Button>
+                    {isSignedIn ? (
+                      <Button
+                        size="lg"
+                        className="text-base md:text-lg px-8 py-6 shadow-xl gradient-purple border-0 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                        //onClick={handleJoinAsProfessional}
+                      >
+                        Fix as Professional
+                      </Button>
+                    ) : (
+                      <SignInButton mode="modal" forceRedirectUrl="/professional-dashboard">
+                        <Button
+                          size="lg"
+                          className="text-base md:text-lg px-8 py-6 shadow-xl gradient-purple border-0 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                        >
+                          Join as Professional
+                        </Button>
+                      </SignInButton>
+                    )}
                     <Button
                       size="lg"
                       variant="outline"
@@ -190,14 +228,14 @@ export default function HeroSection() {
         <div className="container relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-primary/100 mb-4">Why Choose Fixo?</h2>
+              <h2 className="text-foreground mb-8">Why Choose Fixo?</h2>
               <div className="space-y-8">
                 <div className="flex gap-6">
                   <div className="h-12 w-12 gradient-blue rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
                     <Clock className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="mb-1 text-primary/80">No More Waiting</h3>
+                    <h3 className="mb-3">No More Waiting</h3>
                     <p className="text-muted-foreground">
                       Get instant access to professional tradies. No scheduling, no delays.
                     </p>
@@ -209,7 +247,7 @@ export default function HeroSection() {
                     <DollarSign className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                  <h3 className="mb-1 text-primary/80">Save Money</h3>
+                    <h3 className="mb-3">Save Money</h3>
                     <p className="text-muted-foreground">
                       Avoid expensive call-out fees. Pay only for the help you need.
                     </p>
@@ -221,7 +259,7 @@ export default function HeroSection() {
                     <CheckCircle className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                  <h3 className="mb-1 text-primary/80">Verified Professionals</h3>
+                    <h3 className="mb-3">Verified Professionals</h3>
                     <p className="text-muted-foreground">All tradies are verified experts with proven track records.</p>
                   </div>
                 </div>
@@ -237,11 +275,11 @@ export default function HeroSection() {
 
                 <div className="grid grid-cols-2 gap-8 text-center">
                   <div>
-                    <div className="text-3xl font-bold text-teal-500 mb-2">{"< 10 min"}</div>
+                    <div className="text-3xl font-bold text-foreground mb-2">{"< 10 min"}</div>
                     <p className="text-muted-foreground">Average wait time</p>
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-teal-500 mb-2">4.9★</div>
+                    <div className="text-3xl font-bold text-foreground mb-2">4.9★</div>
                     <p className="text-muted-foreground">Customer rating</p>
                   </div>
                 </div>
