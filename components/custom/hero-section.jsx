@@ -73,7 +73,7 @@ export default function HeroSection() {
               {activeTab === "client" ? (
                 <div className="space-y-8">
                   <div className="space-y-6">
-                  <h2 className="text-primary/100 text-foreground">Instant Expert Help for Home Repairs.</h2>
+                    <h2 className="text-primary/100 text-foreground">Instant Expert Help for Home Repairs.</h2>
                     <p className="text-pretty text-muted-foreground max-w-2xl text-lg">
                       Connect with professional tradies for instant video guidance. No waiting, no expensive call-out
                       fees.
@@ -128,7 +128,7 @@ export default function HeroSection() {
               ) : (
                 <div className="space-y-8">
                   <div className="space-y-6">
-                  <h2 className="text-primary/100 text-foreground">Earn Money Helping Homeowners</h2>
+                    <h2 className="text-primary/100 text-foreground">Earn Money Helping Homeowners</h2>
                     <p className="text-pretty text-muted-foreground max-w-2xl text-lg">
                       Share your expertise through video calls. Flexible schedule, instant payments, growing client
                       base.
@@ -157,7 +157,7 @@ export default function HeroSection() {
                       <Button
                         size="lg"
                         className="text-base md:text-lg px-8 py-6 shadow-xl gradient-purple border-0 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-                        //onClick={handleJoinAsProfessional}
+                        onClick={handleJoinAsProfessional}
                       >
                         Fix as Professional
                       </Button>

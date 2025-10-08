@@ -35,13 +35,17 @@ import {
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useUser } from "@clerk/nextjs"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { ErrorDialog } from "@/components/custom/error-dialog"
+import { PaymentModal } from "@/components/custom/payment-modal"
+import { createPaymentSession } from "@/app/actions/stripe"
 
 export default function CombinedDashboard() {
   const router = useRouter()
   const { user, isLoaded } = useUser()
+  const { signOut } = useClerk()
 
   // Convex mutations and queries
   const createUser = useMutation(api.users.CreateUser)
@@ -54,6 +58,9 @@ export default function CombinedDashboard() {
   const updateRequestStatus = useMutation(api.requests.UpdateRequestStatus)
   const deleteRequest = useMutation(api.requests.DeleteRequest)
   const addMessage = useMutation(api.conversations.AddMessage)
+  const requestVideoCall = useMutation(api.requests.RequestVideoCall)
+  const approveVideoCall = useMutation(api.requests.ApproveVideoCall)
+  const updateUser = useMutation(api.users.UpdateUser)
 
   const [selectedActivity, setSelectedActivity] = useState(null) // Moved up to fix lint error
 
@@ -62,12 +69,27 @@ export default function CombinedDashboard() {
     selectedActivity?.convexId ? { requestId: selectedActivity.convexId } : "skip",
   )
 
+  const assignedProfessional = useQuery(
+    api.professionals.getById,
+    selectedActivity?.professionalId ? { id: selectedActivity.professionalId } : "skip",
+  )
+
   const [conversationMessage, setConversationMessage] = useState("")
 
   const [activeSection, setActiveSection] = useState("overview")
   const [showInstantHelpModal, setShowInstantHelpModal] = useState(false)
   const [showHandymanModal, setShowHandymanModal] = useState(false)
   const [showOrderSuppliesModal, setShowOrderSuppliesModal] = useState(false)
+
+  // State for error dialog and payment modal
+  const [errorDialog, setErrorDialog] = useState({ isOpen: false, title: "", message: "" })
+  const [paymentModal, setPaymentModal] = useState({ isOpen: false, jobId: null, amount: 0, fetchClientSecret: null })
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [profileFormData, setProfileFormData] = useState({
+    name: "",
+    phoneNumber: "",
+    address: "",
+  })
 
   const [formData, setFormData] = useState({
     problemType: "",
@@ -117,6 +139,12 @@ export default function CombinedDashboard() {
         status: request.status,
         createdAt: request.createdAt,
         professionalAssigned: request.professionalAssigned,
+        professionalId: request.professionalId,
+        // Add video call related fields
+        videoCallRequested: request.videoCallRequested || false,
+        videoCallRequestedBy: request.videoCallRequestedBy || null,
+        videoCallApproved: request.videoCallApproved || false,
+        videoCallLink: request.videoCallLink || null,
       }))
       setRecentActivities(activities)
     }
@@ -125,6 +153,16 @@ export default function CombinedDashboard() {
   useEffect(() => {
     if (getUser?.token) {
       setTokensUsed(totalTokens - getUser.token)
+    }
+  }, [getUser])
+
+  useEffect(() => {
+    if (getUser) {
+      setProfileFormData({
+        name: getUser.name || "",
+        phoneNumber: getUser.phoneNumber || "",
+        address: getUser.address || "",
+      })
     }
   }, [getUser])
 
@@ -206,7 +244,8 @@ export default function CombinedDashboard() {
         const newMessage = {
           id: Date.now(),
           text: conversationMessage,
-          sender: "user",
+          sender: "client",
+          senderName: user?.fullName || "Client",
           timestamp: new Date().toISOString(),
         }
 
@@ -229,6 +268,12 @@ export default function CombinedDashboard() {
       setSelectedActivity(null)
     } catch (error) {
       console.error("Error deleting request:", error)
+      setErrorDialog({
+        isOpen: true,
+        title: "Cannot Delete Request",
+        message:
+          error.message || "Completed requests cannot be deleted. Please contact support if you need assistance.",
+      })
     }
   }
 
@@ -251,6 +296,47 @@ export default function CombinedDashboard() {
     } catch (error) {
       console.error("Error updating status:", error)
     }
+  }
+
+  const handleRequestVideoCall = async () => {
+    if (!selectedActivity) return
+
+    if (!selectedActivity.professionalAssigned) {
+      alert("Video call will be available once a professional has been assigned to your request.")
+      return
+    }
+
+    try {
+      await requestVideoCall({
+        requestId: selectedActivity.convexId,
+        requestedBy: "client",
+      })
+      alert("Video call requested! Waiting for professional approval.")
+    } catch (error) {
+      console.error("Error requesting video call:", error)
+      alert("Failed to request video call")
+    }
+  }
+
+  const handleApproveVideoCall = async () => {
+    if (!selectedActivity) return
+
+    try {
+      const result = await approveVideoCall({
+        requestId: selectedActivity.convexId,
+      })
+
+      if (result.videoCallLink) {
+        window.open(result.videoCallLink, "_blank")
+      }
+    } catch (error) {
+      console.error("Error approving video call:", error)
+      alert("Failed to approve video call")
+    }
+  }
+
+  const handleSignOut = () => {
+    signOut(() => router.push("/"))
   }
 
   const handleStartVideoCall = () => {
@@ -330,6 +416,50 @@ export default function CombinedDashboard() {
     )
   }
 
+  // Updated profile update handler
+  const handleUpdateProfile = async () => {
+    if (!getUser?._id) return
+
+    try {
+      await updateUser({
+        userId: getUser._id,
+        name: profileFormData.name,
+        phoneNumber: profileFormData.phoneNumber,
+        address: profileFormData.address,
+      })
+      setIsEditingProfile(false)
+      alert("Profile updated successfully!")
+    } catch (error) {
+      console.error("Error updating profile:", error)
+      setErrorDialog({
+        isOpen: true,
+        title: "Update Failed",
+        message: "Failed to update profile. Please try again.",
+      })
+    }
+  }
+
+  const handlePayment = async (job) => {
+    if (!assignedProfessional) return
+
+    const fetchClientSecret = async () => {
+      const clientSecret = await createPaymentSession(
+        job.id,
+        assignedProfessional.hourlyRate * 2, // Example: 2 hours of work
+        assignedProfessional.fullName,
+        job.title,
+      )
+      return clientSecret
+    }
+
+    setPaymentModal({
+      isOpen: true,
+      fetchClientSecret: fetchClientSecret,
+      jobId: job.id,
+      amount: assignedProfessional.hourlyRate * 2,
+    })
+  }
+
   const renderActivityDetail = () => {
     if (!selectedActivity) return null
 
@@ -342,19 +472,81 @@ export default function CombinedDashboard() {
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <Button
-            onClick={handleStartVideoCall}
-            disabled={!selectedActivity.professionalAssigned}
-            className={`flex items-center gap-2 ${
-              selectedActivity.professionalAssigned
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-gray-400 cursor-not-allowed"
-            }`}
-          >
-            <Video className="h-4 w-4" />
-            {selectedActivity.professionalAssigned ? "Start Video Call" : "Awaiting Professional"}
-          </Button>
+          <div className="flex gap-2">
+            {selectedActivity.professionalAssigned && !selectedActivity.videoCallRequested && (
+              <Button
+                onClick={handleRequestVideoCall}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+              >
+                <Video className="h-4 w-4" />
+                Request Video Call
+              </Button>
+            )}
+            {selectedActivity.videoCallRequested && !selectedActivity.videoCallApproved && (
+              <Button disabled className="flex items-center gap-2 bg-yellow-600">
+                <Video className="h-4 w-4" />
+                {selectedActivity.videoCallRequestedBy === "client"
+                  ? "Waiting for Professional Approval"
+                  : "Professional Requested Video Call"}
+              </Button>
+            )}
+            {selectedActivity.videoCallRequested &&
+              selectedActivity.videoCallApproved &&
+              selectedActivity.videoCallLink && (
+                <Button
+                  onClick={() => window.open(selectedActivity.videoCallLink, "_blank")}
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Video className="h-4 w-4" />
+                  Join Video Call
+                </Button>
+              )}
+            {selectedActivity.videoCallRequested &&
+              !selectedActivity.videoCallApproved &&
+              selectedActivity.videoCallRequestedBy === "professional" && (
+                <Button
+                  onClick={handleApproveVideoCall}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Video className="h-4 w-4" />
+                  Approve Video Call
+                </Button>
+              )}
+          </div>
         </div>
+
+        {selectedActivity.professionalAssigned && assignedProfessional && (
+          <Card className="bg-gradient-to-br from-green-50 to-blue-50 border-green-200">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="h-16 w-16 bg-green-600 rounded-full flex items-center justify-center">
+                  <User className="h-8 w-8 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg text-gray-900">Professional Assigned</h3>
+                  <p className="text-gray-700">{assignedProfessional.fullName}</p>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <Wrench className="h-4 w-4" />
+                      {assignedProfessional.tradeCategory}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {assignedProfessional.yearsOfExperience} years exp.
+                    </span>
+                    {assignedProfessional.rating && (
+                      <span className="flex items-center gap-1">⭐ {assignedProfessional.rating.toFixed(1)}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Hourly Rate</p>
+                  <p className="text-2xl font-bold text-green-600">${assignedProfessional.hourlyRate}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="bg-white rounded-lg border p-4 mb-4">
           <div className="flex items-center gap-3 mb-3">
@@ -437,6 +629,9 @@ export default function CombinedDashboard() {
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-purple-600" />
               Conversation
+              {selectedActivity.professionalAssigned && assignedProfessional && (
+                <span className="text-sm font-normal text-gray-600">with {assignedProfessional.fullName}</span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -454,11 +649,22 @@ export default function CombinedDashboard() {
                     {activityConversation.map((message) => (
                       <div key={message.id} className="flex gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-purple-100 text-purple-600">
-                            {message.sender === "user" ? "You" : "Pro"}
+                          <AvatarFallback
+                            className={
+                              message.sender === "client"
+                                ? "bg-purple-100 text-purple-600"
+                                : "bg-blue-100 text-blue-600"
+                            }
+                          >
+                            {message.sender === "client" ? "You" : "Pro"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-medium text-gray-700">
+                              {message.senderName || (message.sender === "client" ? "You" : "Professional")}
+                            </span>
+                          </div>
                           <div className="bg-white p-3 rounded-lg shadow-sm">
                             <p className="text-sm">{message.text}</p>
                           </div>
@@ -510,6 +716,9 @@ export default function CombinedDashboard() {
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm">
                 <Bell className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                Sign Out
               </Button>
               <Avatar>
                 <AvatarImage src={user?.imageUrl || "/placeholder.svg"} />
@@ -804,10 +1013,48 @@ export default function CombinedDashboard() {
                       <h2 className="text-2xl font-bold text-gray-900">Appointments</h2>
                       <Card className="bg-white/80 backdrop-blur-sm border-purple-100 shadow-sm">
                         <CardContent className="p-6">
-                          {renderEmptyState(
-                            "appointments",
-                            CalendarX,
-                            "You have no appointments scheduled. Book a handyman or schedule an expert consultation to get started.",
+                          {recentActivities.filter((a) => a.type === "handyman").length === 0 ? (
+                            renderEmptyState(
+                              "appointments",
+                              CalendarX,
+                              "You have no appointments scheduled. Book a handyman or schedule an expert consultation to get started.",
+                            )
+                          ) : (
+                            <div className="space-y-4">
+                              {recentActivities
+                                .filter((a) => a.type === "handyman")
+                                .map((appointment) => {
+                                  const statusDisplay = getStatusDisplay(appointment.status)
+                                  return (
+                                    <div
+                                      key={appointment.id}
+                                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                                      onClick={() => handleActivityClick(appointment)}
+                                    >
+                                      <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                          <Calendar className="h-6 w-6 text-blue-600" />
+                                        </div>
+                                        <div>
+                                          <h3 className="font-semibold">{appointment.title}</h3>
+                                          <p className="text-sm text-gray-600">
+                                            {appointment.preferredDate} at {appointment.preferredTime}
+                                          </p>
+                                          <span className={`px-2 py-1 text-xs rounded-full ${statusDisplay.color}`}>
+                                            {statusDisplay.label}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      {appointment.professionalAssigned && (
+                                        <div className="text-right">
+                                          <p className="text-sm text-gray-600">Professional Assigned</p>
+                                          <p className="font-medium text-green-600">✓ Confirmed</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                })}
+                            </div>
                           )}
                         </CardContent>
                       </Card>
@@ -822,32 +1069,39 @@ export default function CombinedDashboard() {
                           <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                               <Receipt className="h-5 w-5 text-purple-600" />
-                              Recent Transactions
+                              Pending Payments
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
                             <div className="space-y-3">
-                              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                <div>
-                                  <p className="font-medium">Plumbing Consultation</p>
-                                  <p className="text-sm text-gray-600">Jan 15, 2024</p>
-                                </div>
-                                <span className="font-semibold text-green-600">$45.00</span>
-                              </div>
-                              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                <div>
-                                  <p className="font-medium">AI Tokens Purchase</p>
-                                  <p className="text-sm text-gray-600">Jan 10, 2024</p>
-                                </div>
-                                <span className="font-semibold text-green-600">$19.99</span>
-                              </div>
-                              <div className="flex justify-between items-center py-2">
-                                <div>
-                                  <p className="font-medium">HVAC Diagnosis</p>
-                                  <p className="text-sm text-gray-600">Jan 8, 2024</p>
-                                </div>
-                                <span className="font-semibold text-green-600">$75.00</span>
-                              </div>
+                              {recentActivities
+                                .filter((a) => a.status === "completed" && a.professionalAssigned)
+                                .map((job) => (
+                                  <div
+                                    key={job.id}
+                                    className="flex justify-between items-center py-2 border-b border-gray-100"
+                                  >
+                                    <div>
+                                      <p className="font-medium">{job.title}</p>
+                                      <p className="text-sm text-gray-600">
+                                        {new Date(job.createdAt).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                    <div className="text-right">
+                                      <Button
+                                        onClick={() => handlePayment(job)}
+                                        size="sm"
+                                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                                      >
+                                        Pay Now
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              {recentActivities.filter((a) => a.status === "completed" && a.professionalAssigned)
+                                .length === 0 && (
+                                <p className="text-sm text-gray-600 text-center py-4">No pending payments</p>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
@@ -867,19 +1121,12 @@ export default function CombinedDashboard() {
                                     <CreditCard className="h-4 w-4 text-blue-600" />
                                   </div>
                                   <div>
-                                    <p className="font-medium">•••• •••• •••• 4242</p>
-                                    <p className="text-sm text-gray-600">Expires 12/26</p>
+                                    <p className="font-medium">Stripe Payment</p>
+                                    <p className="text-sm text-gray-600">Secure checkout</p>
                                   </div>
                                 </div>
-                                <Badge variant="secondary">Primary</Badge>
+                                <Badge variant="secondary">Active</Badge>
                               </div>
-                              <Button
-                                variant="outline"
-                                className="w-full border-purple-200 hover:bg-purple-50 bg-transparent"
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Payment Method
-                              </Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -899,21 +1146,89 @@ export default function CombinedDashboard() {
                             </CardTitle>
                           </CardHeader>
                           <CardContent className="space-y-4">
-                            <div>
-                              <label className="text-sm font-medium text-gray-700">Full Name</label>
-                              <p className="mt-1 text-gray-900">{user?.fullName || "User"}</p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium text-gray-700">Email</label>
-                              <p className="mt-1 text-gray-900">{user?.primaryEmailAddress?.emailAddress}</p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium text-gray-700">Phone</label>
-                              <p className="mt-1 text-gray-900">+1 (555) 123-4567</p>
-                            </div>
-                            <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-                              Edit Profile
-                            </Button>
+                            {isEditingProfile ? (
+                              <>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Full Name</label>
+                                  <input
+                                    type="text"
+                                    value={profileFormData.name}
+                                    onChange={(e) => setProfileFormData({ ...profileFormData, name: e.target.value })}
+                                    className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Email</label>
+                                  <p className="mt-1 text-gray-500 text-sm">
+                                    {user?.primaryEmailAddress?.emailAddress} (cannot be changed)
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Phone</label>
+                                  <input
+                                    type="tel"
+                                    value={profileFormData.phoneNumber}
+                                    onChange={(e) =>
+                                      setProfileFormData({ ...profileFormData, phoneNumber: e.target.value })
+                                    }
+                                    className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="+1 (555) 123-4567"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Address</label>
+                                  <input
+                                    type="text"
+                                    value={profileFormData.address}
+                                    onChange={(e) =>
+                                      setProfileFormData({ ...profileFormData, address: e.target.value })
+                                    }
+                                    className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="123 Main St, City, State"
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={handleUpdateProfile}
+                                    className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                                  >
+                                    Save Changes
+                                  </Button>
+                                  <Button
+                                    onClick={() => setIsEditingProfile(false)}
+                                    variant="outline"
+                                    className="flex-1"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Full Name</label>
+                                  <p className="mt-1 text-gray-900">{getUser?.name || user?.fullName || "User"}</p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Email</label>
+                                  <p className="mt-1 text-gray-900">{user?.primaryEmailAddress?.emailAddress}</p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Phone</label>
+                                  <p className="mt-1 text-gray-900">{getUser?.phoneNumber || "Not provided"}</p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700">Address</label>
+                                  <p className="mt-1 text-gray-900">{getUser?.address || "Not provided"}</p>
+                                </div>
+                                <Button
+                                  onClick={() => setIsEditingProfile(true)}
+                                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                                >
+                                  Edit Profile
+                                </Button>
+                              </>
+                            )}
                           </CardContent>
                         </Card>
 
@@ -1228,6 +1543,19 @@ export default function CombinedDashboard() {
           </div>
         </div>
       )}
+
+      <ErrorDialog
+        isOpen={errorDialog.isOpen}
+        onClose={() => setErrorDialog({ isOpen: false, title: "", message: "" })}
+        title={errorDialog.title}
+        message={errorDialog.message}
+      />
+
+      <PaymentModal
+        isOpen={paymentModal.isOpen}
+        onClose={() => setPaymentModal({ isOpen: false, jobId: null, amount: 0, fetchClientSecret: null })}
+        fetchClientSecret={paymentModal.fetchClientSecret}
+      />
     </div>
   )
 }

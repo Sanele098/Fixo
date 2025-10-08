@@ -17,7 +17,8 @@ export const GetConversation = query({
 export const AddMessage = mutation({
   args: {
     requestId: v.id("requests"),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    professionalId: v.optional(v.id("professionals")),
     message: v.any(),
   },
   handler: async (ctx, args) => {

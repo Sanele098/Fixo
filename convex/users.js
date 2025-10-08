@@ -67,3 +67,17 @@ export const UpdateToken = mutation({
     return result
   },
 })
+
+export const UpdateUser = mutation({
+  args: {
+    userId: v.id("users"),
+    name: v.optional(v.string()),
+    phoneNumber: v.optional(v.string()),
+    address: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { userId, ...updates } = args
+    await ctx.db.patch(userId, updates)
+    return { success: true }
+  },
+})
