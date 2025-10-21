@@ -98,4 +98,12 @@ export default defineSchema({
     messages: v.any(), // Array of message objects with sender info
     updatedAt: v.string(),
   }),
+
+  aiChats: defineTable({
+    userId: v.id("users"),
+    title: v.string(), // Auto-generated from first message
+    messages: v.any(), // Array of message objects with role and content
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  }).index("by_user", ["userId"]),
 })

@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { MessageSquare, Video, CheckCircle, UserCheck, DollarSign, Clock, Wrench } from "lucide-react"
+import { MessageSquare, Video, CheckCircle, UserCheck, DollarSign, Clock, Wrench, Brain, Sparkles } from "lucide-react"
 import { useState } from "react"
 
 export default function HowItWorksSection() {
@@ -10,26 +10,26 @@ export default function HowItWorksSection() {
   const homeownerSteps = [
     {
       icon: <MessageSquare className="h-8 w-8" />,
-      title: "Describe Your Problem",
-      description: "Upload media and describe your home repair issue in detail.",
+      title: "State Problem",
+      description: "Upload media and describe your home repair issue. Our AI analyzes it instantly.",
       color: "gradient-blue",
     },
     {
-      icon: <UserCheck className="h-8 w-8" />,
-      title: "Get Matched Instantly",
-      description: "Our system connects you with the right professional within minutes.",
+      icon: <Brain className="h-8 w-8" />,
+      title: "AI Matching",
+      description: "Our AI system connects you with the right professional or solution within minutes.",
       color: "gradient-purple",
     },
     {
       icon: <Video className="h-8 w-8" />,
-      title: "Video Consultation",
-      description: "Get live guidance through video call or schedule an on-site visit.",
+      title: "Video Guidance",
+      description: "Get AI-generated video guides or live consultation through video call.",
       color: "gradient-purple-blue",
     },
     {
       icon: <CheckCircle className="h-8 w-8" />,
       title: "Problem Solved",
-      description: "Get expert guidance or have it done professionally.",
+      description: "Get expert guidance or have it done professionally with confidence.",
       color: "gradient-blue",
     },
   ]
@@ -37,8 +37,8 @@ export default function HowItWorksSection() {
   const professionalSteps = [
     {
       icon: <Clock className="h-8 w-8" />,
-      title: "Browse Available Jobs",
-      description: "View logged issues from homeowners and choose jobs that match your expertise.",
+      title: "Browse AI-Identified Jobs",
+      description: "View issues analyzed by our AI and choose jobs that match your expertise.",
       color: "gradient-blue",
     },
     {
@@ -67,9 +67,13 @@ export default function HowItWorksSection() {
 
       <div className="container relative z-10">
         <div className="text-center mb-16">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Sparkles className="h-6 w-6 text-primary" />
+            <span className="text-sm font-semibold text-primary">AI-Powered Platform</span>
+          </div>
           <h2 className="text-foreground mb-6">How Fixo Works</h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-            Simple, fast, and effective. Get your home repairs sorted in minutes, not days.
+            Simple, fast, and effective. Get your home repairs sorted in minutes with AI-powered matching and guidance.
           </p>
 
           {/* Toggle between homeowner and professional views */}
@@ -108,7 +112,7 @@ export default function HowItWorksSection() {
                 <div className="hidden lg:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-primary/30 to-transparent z-0"></div>
               )}
 
-              <div className="bg-background rounded-2xl p-6 border border-primary/10 shadow-lg hover:shadow-xl transition-all duration-300 relative z-10">
+              <div className="bg-background rounded-2xl p-6 border border-primary/10 shadow-lg hover:shadow-xl transition-all duration-300 relative z-10 hover:border-primary/30">
                 <div
                   className={`h-16 w-16 ${step.color} rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg`}
                 >
@@ -144,8 +148,8 @@ export default function HowItWorksSection() {
             </div>
             <p className="text-muted-foreground mb-6">
               {activeView === "homeowner"
-                ? "Join thousands of homeowners who've solved their repair problems quickly and affordably."
-                : "Join our network of professionals earning money by sharing their expertise."}
+                ? "Join thousands of homeowners who've solved their repair problems quickly with AI-powered guidance."
+                : "Join our network of professionals earning money by sharing their expertise with AI-matched opportunities."}
             </p>
             <Button
               size="lg"
