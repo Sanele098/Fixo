@@ -72,7 +72,7 @@ export default function HeroSection() {
                   }`}
                 >
                   <Briefcase className="h-4 w-4 md:h-5 md:w-5" />
-                  For Professionals
+                  For Handymen
                 </button>
               </div>
 
@@ -80,9 +80,7 @@ export default function HeroSection() {
               {activeTab === "client" ? (
                 <div className="space-y-8">
                   <div className="space-y-6">
-                    <h2 className="text-primary/100 text-foreground">
-                    Instant AI Repair Help
-                    </h2>
+                    <h2 className="text-primary/100 text-foreground">Instant AI Repair Help</h2>
                     <p className="text-pretty text-muted-foreground max-w-2xl text-lg">
                       Connect with professional tradies for instant video guidance powered by AI analysis. No waiting,
                       no expensive call-out fees.
@@ -138,9 +136,7 @@ export default function HeroSection() {
               ) : (
                 <div className="space-y-8">
                   <div className="space-y-6">
-                    <h2 className="text-primary/100 text-foreground">
-                    Fix, and Grow with AI
-                    </h2>
+                    <h2 className="text-primary/100 text-foreground">Fix, and Grow with AI</h2>
                     <p className="text-pretty text-muted-foreground max-w-2xl text-lg">
                       Share your expertise through video calls. AI matches you with the right jobs. Flexible schedule,
                       instant payments, growing client base.
@@ -170,7 +166,7 @@ export default function HeroSection() {
                         className="text-base md:text-lg px-8 py-6 shadow-xl gradient-purple border-0 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
                         onClick={handleJoinAsProfessional}
                       >
-                        Fix as Professional
+                        Fix as Handymen
                       </Button>
                     ) : (
                       <SignInButton mode="modal" forceRedirectUrl="/professional-dashboard">
@@ -178,7 +174,7 @@ export default function HeroSection() {
                           size="lg"
                           className="text-base md:text-lg px-8 py-6 shadow-xl gradient-purple border-0 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
                         >
-                          Join as Professional
+                          Join as Handymen
                         </Button>
                       </SignInButton>
                     )}
@@ -253,72 +249,109 @@ export default function HeroSection() {
       <HowItWorksSection />
 
       {/* Value Proposition */}
-      <section id="why-choose-us" className="py-16 md:py-24 relative">
+      {/**<section id="why-choose-us" className="py-16 md:py-24 relative">
         <div className="absolute bottom-0 left-0 w-64 h-64 gradient-purple opacity-5 organic-shape-alt"></div>
 
         <div className="container relative z-10">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-foreground mb-8">Why Choose Fixo AI?</h2>
-              <div className="space-y-8">
-                <div className="flex gap-6">
-                  <div className="h-12 w-12 gradient-blue rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <Sparkles className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="mb-3">AI-Powered Matching</h3>
-                    <p className="text-muted-foreground">
-                      Get instant access to professional tradies matched by AI. No scheduling, no delays.
-                    </p>
-                  </div>
-                </div>
+          <div className="text-center mb-12">
+            <h2 className="text-foreground mb-4">
+              Why{" "}
+              <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                Fixo AI
+              </span>{" "}
+              is The Right Choice for You
+            </h2>
+          </div>
 
-                <div className="flex gap-6">
-                  <div className="h-12 w-12 gradient-purple-blue rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <DollarSign className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="mb-3">Save Money</h3>
-                    <p className="text-muted-foreground">
-                      Avoid expensive call-out fees. Pay only for the help you need.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-6">
-                  <div className="h-12 w-12 gradient-blue rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <CheckCircle className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="mb-3">Verified Professionals</h3>
-                    <p className="text-muted-foreground">All tradies are verified experts with proven track records.</p>
-                  </div>
-                </div>
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Card 1 - Expert Instructions 
+            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="h-14 w-14 gradient-purple rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                <Sparkles className="h-7 w-7 text-white" />
               </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">Expert Instructions</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Get step-by-step guidance from verified professionals through live video calls. Our AI matches you with
+                the right expert instantly.
+              </p>
             </div>
 
-            <div className="gradient-purple-light rounded-3xl p-10 border border-primary/20 shadow-xl organic-shape-alt">
-              <div className="text-center">
-                <div className="text-6xl font-bold text-primary mb-4">85%</div>
-                <p className="text-muted-foreground mb-10 text-lg">
-                  Average cost savings vs traditional repair services
-                </p>
+            {/* Card 2 - Career-Boost Certify 
+            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="h-14 w-14 gradient-blue rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                <CheckCircle className="h-7 w-7 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">Career-Boost Certify</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                For professionals: Build your reputation with verified credentials and grow your client base through our
+                AI-powered platform.
+              </p>
+            </div>
 
-                <div className="grid grid-cols-2 gap-8 text-center">
-                  <div>
-                    <div className="text-3xl font-bold text-foreground mb-2">{"< 10 min"}</div>
-                    <p className="text-muted-foreground">Average wait time</p>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-foreground mb-2">4.9★</div>
-                    <p className="text-muted-foreground">Customer rating</p>
+            {/* Card 3 - Flexible Learning Schedules - Featured 
+            <div className="gradient-purple-blue rounded-2xl p-8 text-white shadow-2xl transform hover:scale-105 transition-all duration-300 lg:row-span-2 flex flex-col justify-between">
+              <div>
+                <div className="h-14 w-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 border border-white/30">
+                  <Clock className="h-7 w-7 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4">Flexible Learning Schedules</h3>
+                <p className="text-white/90 leading-relaxed mb-6">
+                  Whether you're a homeowner needing help or a professional offering services, our platform works on
+                  your schedule. Connect instantly or book ahead - the choice is yours.
+                </p>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-white flex-shrink-0 mt-0.5" />
+                    <span className="text-white/90">24/7 availability for urgent repairs</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-white flex-shrink-0 mt-0.5" />
+                    <span className="text-white/90">Book sessions at your convenience</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-white flex-shrink-0 mt-0.5" />
+                    <span className="text-white/90">Instant matching with available experts</span>
+                  </li>
+                </ul>
+              </div>
+              <Button size="lg" className="bg-white text-purple-600 hover:bg-white/90 font-semibold w-full shadow-xl">
+                Get Started Now
+              </Button>
+            </div>
+
+            {/* Card 4 - 100+ High Impact Courses 
+            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 lg:col-span-2">
+              <div className="flex items-start gap-6">
+                <div className="h-14 w-14 gradient-purple-blue rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <Users className="h-7 w-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-foreground mb-3">Successful Connections</h3>
+                  <p className="text-muted-foreground leading-relaxed mb-6">
+                    Join thousands of satisfied homeowners and professionals who have saved time and money through our
+                    AI-powered video consultation platform. From plumbing to electrical work, our network covers all
+                    your home repair needs.
+                  </p>
+                  <div className="grid grid-cols-3 gap-6 text-center">
+                    <div>
+                      <div className="text-3xl font-bold text-primary mb-1">85%</div>
+                      <p className="text-sm text-muted-foreground">Cost Savings</p>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-primary mb-1">{"<10min"}</div>
+                      <p className="text-sm text-muted-foreground">Avg Wait Time</p>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-primary mb-1">4.9★</div>
+                      <p className="text-sm text-muted-foreground">User Rating</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </section> **/}
     </div>
   )
 }

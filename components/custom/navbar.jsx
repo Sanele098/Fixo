@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, Wrench } from "lucide-react"
 import { useState } from "react"
 import DemoVideoModal from "./demo-video-modal"
+import Link from "next/link"
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -23,14 +24,14 @@ export default function Navbar() {
         <div className="container mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
-            <div className="flex items-center space-x-3">
+            <Link href="/" className="flex items-center space-x-3">
               <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl shadow-lg">
                 <Wrench className="h-5 w-5 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 Fixo
               </span>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-10">
@@ -49,19 +50,18 @@ export default function Navbar() {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-600 to-blue-600 group-hover:w-full transition-all duration-300"></span>
               </button>
               <button
-                onClick={() => scrollToSection("why-choose-us")}
+                  onClick={() => scrollToSection("why-choose-us")}
+                  className="text-left text-gray-700 hover:text-purple-600 transition-colors duration-200 font-medium py-2"
+                >
+                  Why choose us?
+                </button>
+              <Link
+                href="/blogs"
                 className="relative text-gray-700 hover:text-purple-600 transition-all duration-300 font-medium group"
               >
-                Why Choose Us
+                Blog
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-600 to-blue-600 group-hover:w-full transition-all duration-300"></span>
-              </button>
-              <button
-                onClick={() => scrollToSection("faq")}
-                className="relative text-gray-700 hover:text-purple-600 transition-all duration-300 font-medium group"
-              >
-                FAQ
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-600 to-blue-600 group-hover:w-full transition-all duration-300"></span>
-              </button>
+              </Link>
             </div>
 
             {/* Desktop CTA */}
@@ -110,14 +110,15 @@ export default function Navbar() {
                   onClick={() => scrollToSection("why-choose-us")}
                   className="text-left text-gray-700 hover:text-purple-600 transition-colors duration-200 font-medium py-2"
                 >
-                  Why Choose Us
+                  Why choose us?
                 </button>
-                <button
-                  onClick={() => scrollToSection("faq")}
+                <Link
+                  href="/blogs"
+                  onClick={() => setIsMenuOpen(false)}
                   className="text-left text-gray-700 hover:text-purple-600 transition-colors duration-200 font-medium py-2"
                 >
-                  FAQ
-                </button>
+                  Blog
+                </Link>
                 <button
                   onClick={() => scrollToSection("waitlist")}
                   className="text-left text-gray-700 hover:text-purple-600 transition-colors duration-200 font-medium py-2"

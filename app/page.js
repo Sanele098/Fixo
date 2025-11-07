@@ -11,8 +11,8 @@ export default function HomePage() {
       <div id="home">
         <HeroSection />
       </div>
-      <FAQSection />
-      <WaitlistSection />
+      {/**<FAQSection />**/}
+      {/**<WaitlistSection />**/}
       <Footer />
     </main>
   )

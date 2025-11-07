@@ -97,7 +97,7 @@ export default function HowItWorksSection() {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                For Professionals
+                For Handymen
               </button>
             </div>
           </div>
@@ -148,15 +148,15 @@ export default function HowItWorksSection() {
             </div>
             <p className="text-muted-foreground mb-6">
               {activeView === "homeowner"
-                ? "Join thousands of homeowners who've solved their repair problems quickly with AI-powered guidance."
-                : "Join our network of professionals earning money by sharing their expertise with AI-matched opportunities."}
+                ? "Get AI-powered repair guidance crafted for homeowners — and join us as one of our first users."
+                : "Join our early network of handymen's and get paid for sharing your expertise as new AI-matched opportunities roll out."}
             </p>
-            <Button
+            {/**<Button
               size="lg"
               className="gradient-purple border-0 text-lg px-8 py-6 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
               {activeView === "homeowner" ? "Get Started Now" : "Join as Professional"}
-            </Button>
+            </Button>**/}
           </div>
         </div>
       </div>
