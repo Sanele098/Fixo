@@ -44,7 +44,7 @@ export default function BlogsPage() {
     },
     {
       id: 4,
-      title: "Maximizing Your Earnings as a Fixo Professional",
+      title: "Maximizing Your Earnings as a Fixo Handymen",
       excerpt:
         "Tips and strategies for professionals to optimize their time, build their reputation, and increase their income on the Fixo platform.",
       category: "For Professionals",
@@ -66,7 +66,7 @@ export default function BlogsPage() {
       icon: Lightbulb,
       featured: false,
     },
-    {
+    /**{
       id: 6,
       title: "Success Stories: Real Homeowners, Real Savings",
       excerpt:
@@ -77,7 +77,7 @@ export default function BlogsPage() {
       image: "/happy-homeowner-success.jpg",
       icon: TrendingUp,
       featured: false,
-    },
+    },**/
   ]
 
   const featuredPost = blogPosts.find((post) => post.featured)
