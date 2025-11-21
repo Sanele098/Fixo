@@ -375,7 +375,7 @@ export default function AIChat() {
   }
 
   const handleBackToDashboard = () => {
-    router.push("/")
+    router.push("/dashboard")
   }
 
   return (
